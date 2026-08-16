@@ -11,6 +11,7 @@ cd ~/dotfiles
 ./install.sh                 # symlink home/ -> ~ (never clobbers; --dry-run first)
 ./scripts/install-fonts.sh   # JetBrainsMono Nerd Font + Inter (no sudo)
 ./setup-ghostty-defaults.sh  # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)
+./setup-normcap-defaults.sh  # NormCap flatpak OCR fix + neutral border (no sudo)
 ~/.local/bin/vlc-windows-look.sh   # VLC flatpak, Windows look (1 pkexec if flatpak missing)
 ```
 
@@ -28,6 +29,8 @@ the CPU-quarantine kit (`hardware/README.md`).
 | `home/` | Dotfiles mirroring `~` — symlinked by `install.sh` |
 | `ghostty/config` | Ghostty config → `~/.config/ghostty/config` (step 4 of setup script) |
 | `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
+| `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
+| `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
 | `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |
 | `packages.txt` | Curated apt / flatpak / manual package manifest |
 | `hardware/` | CPU-quarantine kit for the degraded core 1 (initramfs hook + systemd units + heartbeat) |
@@ -63,6 +66,30 @@ Mirrors the old Windows PowerShell (PSReadLine + PSFzf) muscle memory:
 from Flathub, sets `QT_STYLE_OVERRIDE=fusion` (flat Windows widgets) and
 `FONTCONFIG_FILE` to the VLC-specific config, installs Inter static fonts,
 verifies with sandboxed `fc-match`.
+
+## NormCap (flatpak)
+
+`setup-normcap-defaults.sh` — idempotent, user-level. The NormCap 0.6.0
+flatpak ships two broken tesseract bits that make OCR silently return
+nothing:
+
+1. Manifest env `TESSDATA_PREFIX=/app/share`, but the traineddata lives at
+   `/app/share/tessdata/` → tesseract can't load *any* language.
+2. Its bundled tessdata resources are empty, so the first-run copy into the
+   config dir writes a **0-byte** `eng.traineddata`, which NormCap then
+   passes via `--tessdata-dir` → fails even with the env fixed.
+
+The script applies `flatpak override --user --env=TESSDATA_PREFIX=/app/share/tessdata`,
+replaces the 0-byte traineddata from inside the sandbox, copies
+`normcap/settings.conf` (border `#48484A`, neutral dark gray) into
+`~/.var/app/com.github.dynobo.normcap/config/normcap/`, and verifies with
+sandboxed `tesseract --list-langs` → `eng`.
+
+Note: the settings file is a plain **copy**, not a symlink to this repo —
+the flatpak sandbox doesn't mount `~/dotfiles`, so a symlink would be
+invisible to the app. If you change the border color in the GUI, re-run the
+script (it keeps your file and shows a diff) or copy the new value into
+`normcap/settings.conf`.
 
 ## Hermes desktop entry
 

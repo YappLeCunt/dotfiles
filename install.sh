@@ -55,6 +55,7 @@ echo
 echo "==> Done. Per-app setup (ghostty defaults, VLC look, fonts, hardware kit):"
 echo "    ./setup-ghostty-defaults.sh    # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)"
 echo "    ./setup-gnome-defaults.sh      # dconf defaults (desktop animations ON)"
+echo "    ./setup-normcap-defaults.sh    # NormCap flatpak OCR fix + neutral border (no sudo)"
 echo "    ./scripts/install-fonts.sh     # JetBrainsMono Nerd Font + Inter"
 echo "    ~/.local/bin/vlc-windows-look.sh  # VLC flatpak Windows look"
 echo "    see hardware/README.md for the CPU-quarantine kit"
