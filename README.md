@@ -17,7 +17,7 @@ cd ~/dotfiles
 
 Then handle the non-dotfile bits (see `packages.txt`): apt installs
 (`git curl gh ghostty flatpak fzf`), `flatpak install org.videolan.VLC
-com.github.dynobo.normcap org.mozilla.thunderbird eu.betterbird.Betterbird`,
+com.github.dynobo.normcap eu.betterbird.Betterbird`,
 starship installer, `git clone --depth 1
 junegunn/fzf.git ~/.fzf`, ble.sh build, and copy Segoe UI from a Windows
 install (proprietary — never vendored here). Finally, on this laptop, apply
@@ -92,15 +92,11 @@ invisible to the app. If you change the border color in the GUI, re-run the
 script (it keeps your file and shows a diff) or copy the new value into
 `normcap/settings.conf`.
 
-## Email: Thunderbird + Betterbird (flatpak, side-by-side)
+## Email: Betterbird (flatpak)
 
-Both installed user-level from Flathub. They run side-by-side without
-conflict — each flatpak keeps its own profile under
-`~/.var/app/<appid>/` (`org.mozilla.thunderbird` vs
-`eu.betterbird.Betterbird`), so no shared-profile lock or migration risk.
-Thunderbird is the current line (153.x); Betterbird tracks ESR (140.x) and
-is the daily-driver candidate — test it before committing. Same add-ons
-work in both (same format). Never point one at the other's profile dir.
+User-level install from Flathub (`eu.betterbird.Betterbird`, ESR line
+140.x). Thunderbird was trialed alongside it and dropped — Betterbird is
+the daily driver. Profile lives under `~/.var/app/eu.betterbird.Betterbird/`.
 
 ## Hermes desktop entry
 

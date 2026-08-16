@@ -15,8 +15,7 @@ ghostty                          # ghostty.org .deb repo — noble ships no pack
 ## flatpak — user-level
 org.videolan.VLC                 # QT_STYLE_OVERRIDE=fusion + vlc-fonts.conf
 com.github.dynobo.normcap        # OCR screen capture
-org.mozilla.thunderbird          # main email client (current line, 153.x)
-eu.betterbird.Betterbird         # Betterbird ESR fork — runs beside TB, own profile, no conflict
+eu.betterbird.Betterbird         # email client — Betterbird ESR fork (Thunderbird superseded)
 
 ## manual installs (see README)
 starship                         # ~/.local/bin/starship (official installer script)
