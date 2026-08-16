@@ -1,0 +1,22 @@
+# ~/.blerc — ble.sh (Bash Line Editor) settings
+# Replicates the PowerShell PSReadLine + PSFzf experience:
+#   - ghost-text autosuggestions (accept with → / C-f / End, run with C-RET)
+#   - Tab = menu completion, ↑/↓ = history search on a typed prefix
+#   - fzf fuzzy completion (Tab with a prefix) + fzf key bindings (C-r, C-t, M-c)
+
+# ── fzf integration (PSFzf equivalent) ──────────────────────────────
+# fzf binary is in ~/.local/bin, shell scripts live in ~/.fzf/shell —
+# point the integration at the repo dir explicitly (auto-detect misses it).
+_ble_contrib_fzf_base=$HOME/.fzf
+ble-import -d integration/fzf-completion
+ble-import -d integration/fzf-key-bindings
+
+# ── Autosuggestion look (match old PSReadLine InlinePrediction: dim gray) ──
+ble-face -s auto_complete 'fg=238'
+
+# ── Make ↑/↓ always history-search on a typed prefix (like PSReadLine) ──
+ble-bind -f 'up' 'history-search-backward'
+ble-bind -f 'down' 'history-search-forward'
+
+# ── No audible bell on completion errors (PSReadLine had BellStyle None) ──
+bleopt edit_abell=

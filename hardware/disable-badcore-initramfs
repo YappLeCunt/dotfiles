@@ -1,0 +1,13 @@
+#!/bin/sh
+# PREREQ: udev
+#
+# Offline degraded CPU core 1 (CPUs 2,3) as early as possible.
+# Runs inside the initramfs, before the real root is mounted.
+# This is the earliest point userspace can disable them; the
+# disable/throttle systemd service in the real root then takes over.
+
+for c in 2 3; do
+    if [ -f "/sys/devices/system/cpu/cpu${c}/online" ]; then
+        echo 0 > "/sys/devices/system/cpu/cpu${c}/online" 2>/dev/null
+    fi
+done

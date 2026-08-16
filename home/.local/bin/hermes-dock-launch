@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Hermes dock launcher — focus-or-launch.
+#
+# Clicking the dock icon runs this instead of a bare `hermes desktop`.
+# When the desktop app is already running, launching a second `hermes
+# desktop` starts a second backend/gateway that takes over and kills the
+# running app's backend (breaking its connection status). So: if a main
+# Hermes Electron process exists, focus its window and exit; only when
+# nothing is running do we launch the app.
+set -u
+
+# The Electron main process is `.../linux-unpacked/Hermes` (no --type=).
+# Child processes (zygotes, renderers, GPU) carry `--type=...`.
+main_pid=""
+while read -r pid; do
+  if tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null | grep -q -- "--type="; then
+    continue
+  fi
+  main_pid="$pid"
+  break
+done < <(pgrep -f "release/linux-unpacked/Hermes" 2>/dev/null)
+
+if [ -n "$main_pid" ]; then
+  # App is running: bring its window forward, do NOT spawn a second instance.
+  if command -v wmctrl >/dev/null 2>&1; then
+    wmctrl -a Hermes 2>/dev/null || true
+  elif command -v xdotool >/dev/null 2>&1; then
+    xdotool search --class Hermes windowactivate 2>/dev/null || true
+  fi
+  exit 0
+fi
+
+# Nothing running — launch the app normally.
+exec /home/cwayne/.local/bin/hermes desktop "$@"

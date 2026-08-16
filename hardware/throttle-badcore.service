@@ -1,0 +1,11 @@
+[Unit]
+Description=Cap degraded CPU core 1 (CPUs 2,3) at base clock 2.9 GHz
+After=sysinit.target
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 1 > /sys/devices/system/cpu/cpu2/online 2>/dev/null || true; echo 1 > /sys/devices/system/cpu/cpu3/online 2>/dev/null || true; sleep 2; echo 2900000 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 2>/dev/null || true; echo 2900000 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 2>/dev/null || true'
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+# ── Ubuntu 24.04 (noble) — package manifest for this setup ────────────────────
+# A curated manifest, not an installer. The "how" for each item lives in
+# README.md / the per-app scripts. Versions are what's on the box as of
+# 2026-08-16; bump as needed.
+
+## apt — base
+git curl wget ca-certificates gnupg
+flatpak                          # app sandboxing (VLC, NormCap)
+fzf                              # v0.46 in noble; this box runs a newer build in ~/.local/bin
+
+## apt — 3rd-party repos
+gh                               # cli.github.com apt repo (official)
+ghostty                          # ghostty.org .deb repo — noble ships no package
+
+## flatpak — user-level
+org.videolan.VLC                 # QT_STYLE_OVERRIDE=fusion + vlc-fonts.conf
+com.github.dynobo.normcap        # OCR screen capture
+
+## manual installs (see README)
+starship                         # ~/.local/bin/starship (official installer script)
+fzf                              # git clone --depth 1 .../junegunn/fzf.git ~/.fzf  (ble.sh needs ~/.fzf/shell)
+ble.sh                           # git clone --recursive --depth 1 .../akinomyoga/ble.sh.git; make install PREFIX=~/.local
+JetBrainsMono Nerd Font          # scripts/install-fonts.sh
+Inter                            # scripts/install-fonts.sh (+ vlc-windows-look.sh)
+Segoe UI                         # NOT vendored (proprietary) — copy segoeui*.ttf from a Windows install

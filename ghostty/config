@@ -1,0 +1,18 @@
+# Ghostty configuration
+# Managed via ~/dotfiles (symlinked from ~/.config/ghostty/config).
+# Reproduce the whole terminal setup with: ~/dotfiles/setup-ghostty-defaults.sh
+#
+# Reference: `ghostty +show-config --default` or https://ghostty.org/docs/config
+
+# Fonts — matches the system setup (JetBrainsMono Nerd Font Mono, 13pt)
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 13
+
+# A little breathing room so text isn't glued to the window edges
+window-padding-x = 8
+window-padding-y = 8
+
+# --- extend below as you like -----------------------------------------------
+# theme = catppuccin-mocha
+# background-opacity = 0.92
+# window-theme = system

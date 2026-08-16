@@ -1,0 +1,87 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+$directory$git_branch$git_state$git_status$fill$cmd_duration$status
+$character"""
+
+add_newline = true
+command_timeout = 1000
+scan_timeout = 30
+palette = 'linear'
+
+[palettes.linear]
+faint  = "#3a3a3a"
+muted  = "#5a5a5a"
+dim    = "#8a8a8a"
+fg     = "#e6e6e6"
+yellow = "#d4a853"
+red    = "#e5484d"
+accent = "#7c6ff7"
+
+# ── Directory: repo name is the only bright element ──
+[directory]
+use_os_path_sep = false
+truncate_to_repo = true
+truncation_length = 1
+truncation_symbol = ''
+style = 'fg:muted'
+before_repo_root_style = 'fg:faint'
+repo_root_style = 'bold fg:fg'
+repo_root_format = '[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style) '
+format = '[$path]($style) '
+
+# ── Git branch: no glyph, deliberately quiet ──
+[git_branch]
+symbol = ''
+style = 'fg:muted'
+format = '[$branch]($style) '
+
+# ── Git state: the one thing allowed to shout ──
+[git_state]
+style = 'bold fg:red'
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+
+# ── Git status: sigils with counts ──
+[git_status]
+style = 'fg:yellow'
+format = '([$all_status$ahead_behind]($style))'
+ignore_submodules = true
+conflicted = "CONFLICT "
+ahead      = "↑${count} "
+behind     = "↓${count} "
+diverged   = "↕↑${ahead_count}↓${behind_count} "
+up_to_date = ""
+modified   = "~${count} "
+staged     = "+${count} "
+untracked  = "?${count} "
+deleted    = "-${count} "
+renamed    = "»${count} "
+stashed    = "*${count} "
+
+# ── Node: renders only where package.json exists ──
+[nodejs]
+symbol = 'node '
+style = 'fg:faint'
+format = '[$symbol($version)]($style) '
+
+# ── Fill: pushes duration + exit code right ──
+[fill]
+symbol = ' '
+style  = 'fg:#1c1c1c'
+
+[cmd_duration]
+min_time = 2000
+show_milliseconds = false
+style = 'fg:yellow'
+format = '[$duration]($style) '
+
+[status]
+disabled = false
+style = 'fg:red'
+symbol = '✘'
+map_symbol = true
+format = '[$symbol$status]($style) '
+
+[character]
+success_symbol = '[❯](bold fg:accent)'
+error_symbol = '[❯](bold fg:red)'

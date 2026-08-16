@@ -1,0 +1,93 @@
+# dotfiles
+
+Reproducible setup for this Ubuntu 24.04 / GNOME 46 box (Lenovo IdeaPad
+Gaming 3 15ARH05, Ryzen 7 4800H, NVIDIA GTX 1650 Ti + AMD Renoir iGPU).
+
+## Fresh-machine quick start
+
+```sh
+git clone git@github.com:YappLeCunt/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./install.sh                 # symlink home/ -> ~ (never clobbers; --dry-run first)
+./scripts/install-fonts.sh   # JetBrainsMono Nerd Font + Inter (no sudo)
+./setup-ghostty-defaults.sh  # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)
+~/.local/bin/vlc-windows-look.sh   # VLC flatpak, Windows look (1 pkexec if flatpak missing)
+```
+
+Then handle the non-dotfile bits (see `packages.txt`): apt installs
+(`git curl gh ghostty flatpak fzf`), `flatpak install org.videolan.VLC
+com.github.dynobo.normcap`, starship installer, `git clone --depth 1
+junegunn/fzf.git ~/.fzf`, ble.sh build, and copy Segoe UI from a Windows
+install (proprietary — never vendored here). Finally, on this laptop, apply
+the CPU-quarantine kit (`hardware/README.md`).
+
+## Layout
+
+| Path | Purpose |
+|---|---|
+| `home/` | Dotfiles mirroring `~` — symlinked by `install.sh` |
+| `ghostty/config` | Ghostty config → `~/.config/ghostty/config` (step 4 of setup script) |
+| `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
+| `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |
+| `packages.txt` | Curated apt / flatpak / manual package manifest |
+| `hardware/` | CPU-quarantine kit for the degraded core 1 (initramfs hook + systemd units + heartbeat) |
+
+## Shell: bash + ble.sh + starship + fzf
+
+Mirrors the old Windows PowerShell (PSReadLine + PSFzf) muscle memory:
+
+- `home/.bashrc` — loads ble.sh **before** starship (starship must init after
+  ble so it uses ble's PRECMD hook). Note: PATH lines hardcode `/home/cwayne`
+  — adjust the username on another machine.
+- `home/.blerc` — ghost-text autosuggestions (dim gray, like PSReadLine
+  InlinePrediction), Tab = menu completion, ↑/↓ = history search on a typed
+  prefix, fzf completion + key bindings. `_ble_contrib_fzf_base=$HOME/.fzf`
+  is required because fzf lives in `~/.local/bin` and auto-detect misses it.
+- `home/.config/starship.toml` — minimal quiet prompt; repo name is the only
+  bright element, git state is the only thing allowed to shout.
+
+## Fonts
+
+- **Segoe UI** (UI + docs, 11pt) — from a Windows install; `fonts.conf`
+  routes sans-serif → Segoe UI (strong) with Inter as weak fallback.
+  **Inter must stay weak** or the system conf.d rules (56/60-latin) win.
+- **JetBrainsMono Nerd Font Mono 13pt** — terminal + monospace.
+- `home/.config/fontconfig/fonts.conf` — Segoe UI alias + ClearType-style
+  subpixel rendering (embedded bytecode hinting, not autohinter).
+- `vlc-windows-look.sh` additionally writes `~/.config/fontconfig/vlc-fonts.conf`
+  (Inter wins inside the VLC sandbox; overrides placed after conf.d include).
+
+## VLC (flatpak)
+
+`home/.local/bin/vlc-windows-look.sh` — idempotent, user-level: installs VLC
+from Flathub, sets `QT_STYLE_OVERRIDE=fusion` (flat Windows widgets) and
+`FONTCONFIG_FILE` to the VLC-specific config, installs Inter static fonts,
+verifies with sandboxed `fc-match`.
+
+## Hermes dock launcher
+
+`home/.local/bin/hermes-dock-launch` — focus-or-launch for the dock icon.
+A second `hermes desktop` spawn would start a second backend that kills the
+running app's; this script detects the running Electron main process and only
+launches when nothing is running. (Focus path is a silent no-op without
+wmctrl/xdotool — it only prevents the duplicate-instance kill.)
+
+## Hardware (this laptop only)
+
+`hardware/` — core 1 (CPUs 2/3) is physically degraded; the kit offlines it
+in the initramfs (earliest possible point) with a systemd backup, or
+optionally throttles it to 2.9 GHz. `amd_pstate=passive` is required for
+throttle caps to hold. Full docs: `hardware/README.md`.
+
+## Notes / caveats
+
+- `install.sh` is additive only: it never overwrites an existing file, it
+  prints `SKIP` and moves on. Files here are byte-identical to the live
+  configs, so `git diff` stays meaningful after editing either side.
+- Nautilus "Open in Terminal" on Ubuntu 24.04 is hardcoded to GNOME Terminal
+  (nautilus-extension-gnome-terminal); install `nautilus-open-any-terminal`
+  for that menu to launch Ghostty.
+- `org.gnome.desktop.default-applications.terminal` is deprecated but kept
+  for legacy tooling.
+- Nothing secret lives here: no tokens, keys, or credentials. The repo is
+  private by default — flip with `gh repo edit --visibility public`.

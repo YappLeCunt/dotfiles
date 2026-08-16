@@ -1,0 +1,10 @@
+[Unit]
+Description=Disable degraded CPU core 1 (CPUs 2,3)
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 0 > /sys/devices/system/cpu/cpu2/online || true; echo 0 > /sys/devices/system/cpu/cpu3/online || true'
+
+[Install]
+WantedBy=multi-user.target
