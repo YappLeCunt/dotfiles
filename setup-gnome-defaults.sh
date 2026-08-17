@@ -22,4 +22,13 @@ dconf write /org/gnome/shell/extensions/gsconnect/show-indicators true
 echo "  show-indicators = true (global)"
 "$DOTFILES/scripts/apply-gsconnect-prefs.sh"
 
+echo "==> GNOME: Blur my Shell settings (from blur-my-shell/settings.dconf)"
+BLUR_DCONF="$DOTFILES/blur-my-shell/settings.dconf"
+if [ -f "$BLUR_DCONF" ]; then
+  dconf load /org/gnome/shell/extensions/blur-my-shell/ < "$BLUR_DCONF"
+  echo "  applied"
+else
+  echo "  no blur-my-shell/settings.dconf in repo — skipping"
+fi
+
 echo "==> Done."

@@ -94,8 +94,8 @@ done
 echo
 echo "==> Done. Per-app setup (ghostty defaults, VLC look, fonts, hardware kit):"
 echo "    ./setup-ghostty-defaults.sh    # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)"
-echo "    ./setup-gnome-defaults.sh      # dconf defaults (animations ON, GSConnect prefs)"
-echo "    ./setup-gnome-extensions.sh    # GNOME extensions (clipboard indicator, gsconnect)"
+echo "    ./setup-gnome-defaults.sh      # dconf defaults (animations ON, GSConnect + Blur prefs)"
+echo "    ./setup-gnome-extensions.sh    # GNOME extensions (clipboard indicator, GSConnect, Blur my Shell)"
 echo "    ./setup-normcap-defaults.sh    # NormCap flatpak OCR fix + neutral border (no sudo)"
 echo "    ./scripts/install-fonts.sh     # JetBrainsMono Nerd Font + Inter"
 echo "    ~/.local/bin/vlc-windows-look.sh  # VLC flatpak Windows look"

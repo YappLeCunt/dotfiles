@@ -44,7 +44,8 @@ change re-points our own symlinks; real files are never clobbered.
 | `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
 | `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON, GSConnect prefs) |
 | `gsconnect/plugin-prefs.dconf` | GSConnect per-device plugin prefs, phone-agnostic (no device ID baked in) — applied to every paired device by `scripts/apply-gsconnect-prefs.sh` |
-| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, GSConnect); merges `enabled-extensions`, never clobbers |
+| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, GSConnect, Blur my Shell); merges `enabled-extensions`, never clobbers |
+| `blur-my-shell/settings.dconf` | Blur my Shell dconf settings (glass pipelines, bright alt-tab; dock blur OFF — ubuntu-dock keeps its own look) — applied by setup-gnome-defaults.sh |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
 | `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |
@@ -126,6 +127,14 @@ applied to *every* paired device by `scripts/apply-gsconnect-prefs.sh`.
 Works with any phone; re-run after pairing a new one. Device certs and
 pairing state are deliberately NOT versioned — machine-specific, and
 re-pairing takes seconds on a fresh box.
+
+**Blur my Shell** (`blur-my-shell@aunetx`) adds frosted glass to the panel,
+overview, and alt-tab (custom bright pipeline — the default 0.6 brightness
+reads as "still dark"). The dock is deliberately NOT blurred: blur-my-shell's
+dash-to-dock styling fights ubuntu-dock's own background (double dark
+background = "ruined" dock), so it's disabled in `blur-my-shell/settings.dconf`.
+Settings are applied by `setup-gnome-defaults.sh`; the whole subtree is
+portable (no certs/device IDs).
 
 With a shell session running, the script asks the shell to install via
 `org.gnome.Shell.Extensions.InstallRemoteExtension` — registered and
