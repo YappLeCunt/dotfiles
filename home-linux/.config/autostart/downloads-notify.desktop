@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Downloads Notifier
+Comment=Desktop notification when a new file arrives in ~/Downloads
+Exec=/home/cwayne/.local/bin/downloads-notify.sh
+Terminal=false
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=5
