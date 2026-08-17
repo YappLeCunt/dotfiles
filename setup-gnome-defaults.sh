@@ -8,7 +8,7 @@
 #   do NOT re-disable without asking.
 set -euo pipefail
 
-echo "==> GNOME: enabling desktop animations (windows glide, not snap)"
+echo "==> GNOME: enabling desktop animations"
 gsettings set org.gnome.desktop.interface enable-animations true
 
 echo "==> Done."

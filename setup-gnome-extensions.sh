@@ -4,7 +4,6 @@
 # Idempotent: safe to re-run any time; never touches other extensions.
 #
 #   clipboard-indicator@tudmotu.com       # clipboard history (top-bar icon)
-#   burn-my-windows@schneegans.github.com # window animations (glide)
 #
 # Install path preference:
 #   1. Live: with a shell session reachable, the shell installs + registers
@@ -18,7 +17,6 @@ set -euo pipefail
 
 EXTENSIONS=(
   "clipboard-indicator@tudmotu.com"
-  "burn-my-windows@schneegans.github.com"
 )
 
 EXT_DIR="$HOME/.local/share/gnome-shell/extensions"
@@ -124,4 +122,4 @@ for uuid in "${EXTENSIONS[@]}"; do
   fi
 done
 echo "  enabled-extensions = $(gsettings get org.gnome.shell enabled-extensions)"
-log "Done. Clipboard Indicator = top-bar clipboard icon; BMW = window animations."
+log "Done. Clipboard Indicator = top-bar clipboard icon."

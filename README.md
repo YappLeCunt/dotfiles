@@ -12,7 +12,7 @@ cd ~/dotfiles
 ./scripts/install-fonts.sh   # JetBrainsMono Nerd Font + Inter (no sudo)
 ./setup-ghostty-defaults.sh  # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)
 ./setup-gnome-defaults.sh    # dconf defaults (desktop animations ON)
-./setup-gnome-extensions.sh  # GNOME extensions (clipboard indicator, BMW)
+./setup-gnome-extensions.sh  # GNOME extensions (clipboard indicator)
 ./setup-normcap-defaults.sh  # NormCap flatpak OCR fix + neutral border (no sudo)
 ~/.local/bin/vlc-windows-look.sh   # VLC flatpak, Windows look (1 pkexec if flatpak missing)
 ```
@@ -33,7 +33,7 @@ the CPU-quarantine kit (`hardware/README.md`).
 | `ghostty/config` | Ghostty config → `~/.config/ghostty/config` (step 4 of setup script) |
 | `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
 | `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON) |
-| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, BMW); merges `enabled-extensions`, never clobbers |
+| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator); merges `enabled-extensions`, never clobbers |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
 | `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |
@@ -99,11 +99,11 @@ script (it keeps your file and shows a diff) or copy the new value into
 ## GNOME extensions
 
 `setup-gnome-extensions.sh` — idempotent: installs **Clipboard Indicator**
-(clipboard history in the top bar) and **Burn My Windows** (Glide window
-animation) from extensions.gnome.org, then merges them into
-`enabled-extensions` without touching anything already on the list.
-Chosen over the newer "Clipboard History" extension (SUPERCILEX) after an
-A/B test — image previews were broken on X11 and the tray icon mis-scaled.
+(clipboard history in the top bar) from extensions.gnome.org, then merges
+it into `enabled-extensions` without touching anything already on the
+list. Chosen over the newer "Clipboard History" extension (SUPERCILEX)
+after an A/B test — image previews were broken on X11 and the tray icon
+mis-scaled.
 
 With a shell session running, the script asks the shell to install via
 `org.gnome.Shell.Extensions.InstallRemoteExtension` — registered and
