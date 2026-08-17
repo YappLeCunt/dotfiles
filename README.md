@@ -27,13 +27,23 @@ the CPU-quarantine kit (`hardware/README.md`).
 
 ## Layout
 
+Dotfiles are **layered by platform** — `install.sh` picks the active layers
+and symlinks each path from the deepest layer that provides it (a GNOME
+override of a Linux file wins over the Linux copy, which wins over the
+all-OS copy). Detection: `uname` for Linux, `$XDG_CURRENT_DESKTOP` for the
+DE (with a `pgrep` fallback for SSH sessions). Re-running after a layer
+change re-points our own symlinks; real files are never clobbered.
+
 | Path | Purpose |
 |---|---|
-| `home/` | Dotfiles mirroring `~` — symlinked by `install.sh` |
+| `home/` | Layer 0 — **ALL-OS** (starship.toml, .gitconfig). Always active. |
+| `home-linux/` | Layer 1 — **Linux** (.bashrc + ble.sh, fontconfig, flatpak scripts). Active on Linux. |
+| `home-gnome/` | Layer 2 — **GNOME DE** (GSConnect config etc.). Active when GNOME is running. |
+| `home-kde/` | Layer 2 — **KDE DE** (KDE Connect config etc.). Active when KDE is running. |
 | `ghostty/config` | Ghostty config → `~/.config/ghostty/config` (step 4 of setup script) |
 | `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
 | `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON) |
-| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator); merges `enabled-extensions`, never clobbers |
+| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, GSConnect); merges `enabled-extensions`, never clobbers |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
 | `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |
@@ -99,11 +109,13 @@ script (it keeps your file and shows a diff) or copy the new value into
 ## GNOME extensions
 
 `setup-gnome-extensions.sh` — idempotent: installs **Clipboard Indicator**
-(clipboard history in the top bar) from extensions.gnome.org, then merges
-it into `enabled-extensions` without touching anything already on the
-list. Chosen over the newer "Clipboard History" extension (SUPERCILEX)
-after an A/B test — image previews were broken on X11 and the tray icon
-mis-scaled.
+(clipboard history in the top bar) and **GSConnect** (phone link over KDE
+Connect's protocol, no KDE software needed) from extensions.gnome.org,
+then merges them into `enabled-extensions` without touching anything
+already on the list. Clipboard Indicator was chosen over the newer
+"Clipboard History" extension (SUPERCILEX) after an A/B test — image
+previews were broken on X11 and the tray icon mis-scaled. GSConnect is
+the GNOME-layer answer to KDE Connect (same Android app either way).
 
 With a shell session running, the script asks the shell to install via
 `org.gnome.Shell.Extensions.InstallRemoteExtension` — registered and
@@ -135,8 +147,9 @@ throttle caps to hold. Full docs: `hardware/README.md`.
 ## Notes / caveats
 
 - `install.sh` is additive only: it never overwrites an existing file, it
-  prints `SKIP` and moves on. Files here are byte-identical to the live
-  configs, so `git diff` stays meaningful after editing either side.
+  prints `SKIP` and moves on (symlinks pointing into this repo get
+  re-pointed when they move layers). Files here are byte-identical to the
+  live configs, so `git diff` stays meaningful after editing either side.
 - Nautilus "Open in Terminal" on Ubuntu 24.04 is hardcoded to GNOME Terminal
   (nautilus-extension-gnome-terminal); install `nautilus-open-any-terminal`
   for that menu to launch Ghostty.
