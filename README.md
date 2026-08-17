@@ -139,8 +139,9 @@ a charge level (default 80%) while charging. Edge-triggered with a 30-min
 cooldown, so it fires once on the upward crossing, not on every poll.
 Reads the phone battery over KDE Connect's D-Bus interface (Linux-only —
 Windows/macOS expose no battery API; use phone-side automation such as
-Tasker there). Schedule it every 5 minutes: systemd user timer, cron, or a
-Hermes cron job. Quiet unless the threshold is crossed.
+Tasker there). Ships with a systemd user timer in
+`home-linux/.config/systemd/user/` (every 5 min, `systemctl --user enable
+--now phone-battery-80.timer`). Quiet unless the threshold is crossed.
 
 **Blur my Shell** (`blur-my-shell@aunetx`) adds frosted glass to the panel,
 overview, and alt-tab (custom bright pipeline — the default 0.6 brightness
