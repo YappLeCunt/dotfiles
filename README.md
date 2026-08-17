@@ -38,13 +38,12 @@ change re-points our own symlinks; real files are never clobbered.
 |---|---|
 | `home/` | Layer 0 — **ALL-OS** (starship.toml, .gitconfig). Always active. |
 | `home-linux/` | Layer 1 — **Linux** (.bashrc + ble.sh, fontconfig, flatpak scripts). Active on Linux. |
-| `home-gnome/` | Layer 2 — **GNOME DE** (GSConnect config etc.). Active when GNOME is running. |
+| `home-gnome/` | Layer 2 — **GNOME DE** (GNOME-specific configs). Active when GNOME is running. |
 | `home-kde/` | Layer 2 — **KDE DE** (KDE Connect config etc.). Active when KDE is running. |
 | `ghostty/config` | Ghostty config → `~/.config/ghostty/config` (step 4 of setup script) |
 | `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
-| `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON, GSConnect prefs) |
-| `gsconnect/plugin-prefs.dconf` | GSConnect per-device plugin prefs, phone-agnostic (no device ID baked in) — applied to every paired device by `scripts/apply-gsconnect-prefs.sh` |
-| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, GSConnect, Blur my Shell); merges `enabled-extensions`, never clobbers |
+| `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON, Blur prefs) |
+| `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, Blur my Shell); merges `enabled-extensions`, never clobbers |
 | `blur-my-shell/settings.dconf` | Blur my Shell dconf settings (glass pipelines, bright alt-tab; dock blur OFF — ubuntu-dock keeps its own look) — applied by setup-gnome-defaults.sh |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
@@ -111,22 +110,27 @@ script (it keeps your file and shows a diff) or copy the new value into
 ## GNOME extensions
 
 `setup-gnome-extensions.sh` — idempotent: installs **Clipboard Indicator**
-(clipboard history in the top bar) and **GSConnect** (phone link over KDE
-Connect's protocol, no KDE software needed) from extensions.gnome.org,
-then merges them into `enabled-extensions` without touching anything
-already on the list. Clipboard Indicator was chosen over the newer
-"Clipboard History" extension (SUPERCILEX) after an A/B test — image
-previews were broken on X11 and the tray icon mis-scaled. GSConnect is
-the GNOME-layer answer to KDE Connect (same Android app either way).
+(clipboard history in the top bar) and **Blur my Shell** from
+extensions.gnome.org, then merges them into `enabled-extensions` without
+touching anything already on the list. Clipboard Indicator was chosen over
+the newer "Clipboard History" extension (SUPERCILEX) after an A/B test —
+image previews were broken on X11 and the tray icon mis-scaled.
 
-GSConnect prefs are versioned **phone-agnostically**: `show-indicators` is
-a global dconf write in `setup-gnome-defaults.sh`, and the per-device
-plugin prefs (clipboard sync, battery alert, notification filter, receive
-dir) live in `gsconnect/plugin-prefs.dconf` with **no device ID** —
-applied to *every* paired device by `scripts/apply-gsconnect-prefs.sh`.
-Works with any phone; re-run after pairing a new one. Device certs and
-pairing state are deliberately NOT versioned — machine-specific, and
-re-pairing takes seconds on a fresh box.
+## Phone link: KDE Connect
+
+The phone link is **KDE Connect** (the real one, not GSConnect — GSConnect
+was retired after the notification mirror kept re-spamming the same
+ColorOS persistent notifications on every reconnect; KDE Connect's
+desktop side updates notifications in place and syncs dismissal back to
+the phone). Install with `sudo apt install kdeconnect`; the daemon
+auto-starts via `/etc/xdg/autostart`. Pair from the tray icon or:
+
+    kdeconnect-cli -l                    # list devices
+    kdeconnect-cli -d <id> --pair        # send pair request to the phone
+
+Same Android app either way (KDE Connect for Android). Device certs and
+pairing state live in `~/.config/kdeconnect/` and are deliberately NOT
+versioned — machine-specific, and re-pairing takes seconds on a fresh box.
 
 **Blur my Shell** (`blur-my-shell@aunetx`) adds frosted glass to the panel,
 overview, and alt-tab (custom bright pipeline — the default 0.6 brightness

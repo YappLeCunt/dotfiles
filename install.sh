@@ -4,7 +4,7 @@
 # Layered by platform, deepest layer wins for any given path:
 #   home/          layer 0 — ALL-OS    (starship.toml, .gitconfig, ...)
 #   home-linux/    layer 1 — Linux     (.bashrc, fontconfig, flatpak scripts, ...)
-#   home-gnome/    layer 2 — GNOME DE  (gsconnect + GNOME-specific configs)
+#   home-gnome/    layer 2 — GNOME DE  (GNOME-specific configs)
 #   home-kde/      layer 2 — KDE DE    (kdeconnect + KDE-specific configs)
 # Layer 0 is always active; layer 1 when uname says Linux; the DE layer is
 # picked from $XDG_CURRENT_DESKTOP (with a pgrep fallback for SSH sessions).
@@ -94,8 +94,8 @@ done
 echo
 echo "==> Done. Per-app setup (ghostty defaults, VLC look, fonts, hardware kit):"
 echo "    ./setup-ghostty-defaults.sh    # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)"
-echo "    ./setup-gnome-defaults.sh      # dconf defaults (animations ON, GSConnect + Blur prefs)"
-echo "    ./setup-gnome-extensions.sh    # GNOME extensions (clipboard indicator, GSConnect, Blur my Shell)"
+echo "    ./setup-gnome-defaults.sh      # dconf defaults (animations ON, Blur prefs)"
+echo "    ./setup-gnome-extensions.sh    # GNOME extensions (clipboard indicator, Blur my Shell)"
 echo "    ./setup-normcap-defaults.sh    # NormCap flatpak OCR fix + neutral border (no sudo)"
 echo "    ./scripts/install-fonts.sh     # JetBrainsMono Nerd Font + Inter"
 echo "    ~/.local/bin/vlc-windows-look.sh  # VLC flatpak Windows look"

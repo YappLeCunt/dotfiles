@@ -4,7 +4,6 @@
 # Idempotent: safe to re-run any time; never touches other extensions.
 #
 #   clipboard-indicator@tudmotu.com       # clipboard history (top-bar icon)
-#   gsconnect@andyholmes.github.io        # phone link (KDE Connect protocol, GNOME-side)
 #   blur-my-shell@aunetx                  # frosted glass (panel, overview, alt-tab)
 #
 # Install path preference:
@@ -19,7 +18,6 @@ set -euo pipefail
 
 EXTENSIONS=(
   "clipboard-indicator@tudmotu.com"
-  "gsconnect@andyholmes.github.io"
   "blur-my-shell@aunetx"
 )
 
@@ -126,4 +124,4 @@ for uuid in "${EXTENSIONS[@]}"; do
   fi
 done
 echo "  enabled-extensions = $(gsettings get org.gnome.shell enabled-extensions)"
-log "Done. Clipboard Indicator = top-bar icon; GSConnect = phone pairing; Blur = frosted glass."
+log "Done. Clipboard Indicator = top-bar icon; Blur = frosted glass. (Phone link: KDE Connect — apt package, see README)"
