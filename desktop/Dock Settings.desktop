@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Dock Settings
+Comment=Ubuntu Dock appearance and behavior settings
+Exec=gnome-extensions prefs ubuntu-dock@ubuntu.com
+Icon=preferences-desktop
+Terminal=false
+Categories=Settings;

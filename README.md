@@ -45,6 +45,8 @@ change re-points our own symlinks; real files are never clobbered.
 | `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON, Blur prefs) |
 | `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, Blur my Shell); merges `enabled-extensions`, never clobbers |
 | `blur-my-shell/settings.dconf` | Blur my Shell dconf settings (glass pipelines, bright alt-tab; dock blur OFF — ubuntu-dock keeps its own look) — applied by setup-gnome-defaults.sh |
+| `dash-to-dock/settings.dconf` | Ubuntu Dock dconf settings (bottom dock, white dots, external-monitor preference) — applied by setup-gnome-defaults.sh |
+| `desktop/Dock Settings.desktop` | Dock Settings launcher — copied to `~/Desktop` by install.sh **only when desktop icons (ding) are enabled**; copied not symlinked (gvfs trusted flag is per-path) |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
 | `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |

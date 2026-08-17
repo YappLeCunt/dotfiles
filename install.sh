@@ -91,10 +91,31 @@ for rel in "${!WINNER[@]}"; do
   link "$rel" "${WINNER[$rel]}"
 done
 
+# ---- desktop shortcut: Dock Settings (only when desktop icons are on) ---------
+# Copied (not symlinked) on purpose: the gvfs "trusted launcher" flag is stored
+# per-path, and ding can be flaky with symlinked .desktop entries.
+DESKTOP_ENTRY="$DOTFILES/desktop/Dock Settings.desktop"
+DST_SHORTCUT="$HOME/Desktop/Dock Settings.desktop"
+if gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q 'ding@rastersoft.com'; then
+  if [ -e "$DST_SHORTCUT" ]; then
+    echo "  ok    Desktop/Dock Settings.desktop (already there)"
+  elif [ "$DRY_RUN" -eq 1 ]; then
+    echo "  link  Desktop/Dock Settings.desktop"
+  else
+    mkdir -p "$HOME/Desktop"
+    cp -f "$DESKTOP_ENTRY" "$DST_SHORTCUT"
+    chmod +x "$DST_SHORTCUT"
+    gio set "$DST_SHORTCUT" metadata::trusted true 2>/dev/null || true
+    echo "  link  Desktop/Dock Settings.desktop (trusted)"
+  fi
+else
+  echo "  SKIP  Desktop shortcut: desktop icons (ding) not enabled"
+fi
+
 echo
 echo "==> Done. Per-app setup (ghostty defaults, VLC look, fonts, hardware kit):"
 echo "    ./setup-ghostty-defaults.sh    # Ctrl+Alt+T -> Ghostty (2 pkexec prompts)"
-echo "    ./setup-gnome-defaults.sh      # dconf defaults (animations ON, Blur prefs)"
+echo "    ./setup-gnome-defaults.sh      # dconf defaults (animations ON, Blur + dock prefs)"
 echo "    ./setup-gnome-extensions.sh    # GNOME extensions (clipboard indicator, Blur my Shell)"
 echo "    ./setup-normcap-defaults.sh    # NormCap flatpak OCR fix + neutral border (no sudo)"
 echo "    ./scripts/install-fonts.sh     # JetBrainsMono Nerd Font + Inter"
