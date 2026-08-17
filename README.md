@@ -42,7 +42,8 @@ change re-points our own symlinks; real files are never clobbered.
 | `home-kde/` | Layer 2 — **KDE DE** (KDE Connect config etc.). Active when KDE is running. |
 | `ghostty/config` | Ghostty config → `~/.config/ghostty/config` (step 4 of setup script) |
 | `setup-ghostty-defaults.sh` | Idempotent: Ghostty as default terminal (x-terminal-emulator alt + Ctrl+Alt+T via gsettings) |
-| `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON) |
+| `setup-gnome-defaults.sh` | Idempotent: dconf defaults (desktop animations ON, GSConnect prefs) |
+| `gsconnect/gsconnect.dconf` | GSConnect prefs (dconf dump, certs/pairing stripped) — applied by setup-gnome-defaults.sh on unpaired setups |
 | `setup-gnome-extensions.sh` | Idempotent: installs/enables GNOME extensions from EGO (clipboard indicator, GSConnect); merges `enabled-extensions`, never clobbers |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
@@ -116,6 +117,12 @@ already on the list. Clipboard Indicator was chosen over the newer
 "Clipboard History" extension (SUPERCILEX) after an A/B test — image
 previews were broken on X11 and the tray icon mis-scaled. GSConnect is
 the GNOME-layer answer to KDE Connect (same Android app either way).
+
+GSConnect preferences (panel indicator mode, clipboard sync, battery
+alert, notification app filter) are versioned in `gsconnect/gsconnect.dconf`
+and applied by `setup-gnome-defaults.sh` when no device is paired yet.
+Device certs and pairing state are deliberately NOT versioned — they're
+machine-specific, and re-pairing takes seconds on a fresh box.
 
 With a shell session running, the script asks the shell to install via
 `org.gnome.Shell.Extensions.InstallRemoteExtension` — registered and
