@@ -1,0 +1,379 @@
+#!/usr/bin/env python3
+"""monitor-prefs — restore saved per-monitor refresh rates by EDID identity.
+
+WHY THIS EXISTS
+---------------
+GNOME (and most compositors) key saved monitor settings on the RandR
+connector NAME (HDMI-0, eDP-1-0, DP-3, ...). That name changes whenever the
+GPU driving the port changes: `prime-select on-demand` <-> `nvidia`, MUX
+switches, docks, driver updates. When the name changes, the saved refresh
+rate silently stops matching and the monitor falls back to its preferred
+mode — usually 60 Hz. This script re-applies the saved rates by matching
+the monitor's EDID identity (vendor:product), which is stable no matter
+which GPU scans the port out.
+
+CONFIG: ~/.config/monitor-prefs, one rule per line:
+    VENDOR:0xPRODUCT=REFRESH            e.g. INP:0x2150=75
+    VENDOR:0xPRODUCT:0xSERIAL=REFRESH   serial optional (usually 0; omit)
+    VENDOR:0xPRODUCT=REFRESH:UUID       mac only: displayplacer UUID
+    # comment lines and blanks ignored
+VENDOR = 3-letter EDID manufacturer (INP, AUO, DEL, ...). PRODUCT = EDID
+product code in hex. Get identities with `monitor-prefs --status`.
+
+USAGE
+-----
+    monitor-prefs --status               list live outputs + identities + prefs
+    monitor-prefs --apply                apply prefs (safe; no-op when already right)
+    monitor-prefs --apply --dry-run      show what WOULD change
+    monitor-prefs --sync-monitors-xml    rename connectors in ~/.config/monitors.xml
+                                         to the live names (fixes GNOME saved config;
+                                         takes effect at next login)
+
+Sessions:
+  X11            xrandr applies immediately (works live, no relogin).
+  Wayland        uses `gnome-randr` if installed; else syncs monitors.xml
+                 (effective next login) and tells you.
+  macOS          best-effort via `displayplacer` (brew install displayplacer);
+                 needs a :UUID on each rule. Untested by the author.
+"""
+from __future__ import annotations
+
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+CONFIG_PATH = os.environ.get("MONITOR_PREFS_CONF", os.path.expanduser("~/.config/monitor-prefs"))
+MONITORS_XML = os.environ.get("MONITORS_XML", os.path.expanduser("~/.config/monitors.xml"))
+
+
+# ---------------------------------------------------------------- config ----
+def parse_config() -> list[tuple[str, int, int | None, float, str | None]]:
+    """Return [(vendor, product, serial_or_None, rate, mac_uuid_or_None)]."""
+    rules = []
+    try:
+        lines = open(CONFIG_PATH, encoding="utf-8").read().splitlines()
+    except FileNotFoundError:
+        print(f"monitor-prefs: config not found: {CONFIG_PATH}", file=sys.stderr)
+        return []
+    for ln, line in enumerate(lines, 1):
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        m = re.match(r"^([A-Za-z]{3}):(0x[0-9A-Fa-f]+)(?::(0x[0-9A-Fa-f]+))?=(\d+(?:\.\d+)?)(?::([^:]+))?$", line)
+        if not m:
+            print(f"monitor-prefs: {CONFIG_PATH}:{ln}: bad rule {line!r}", file=sys.stderr)
+            continue
+        vendor, prod, serial, rate, uuid = m.groups()
+        rules.append((vendor.upper(), int(prod, 16), int(serial, 16) if serial else None, float(rate), uuid))
+    return rules
+
+
+# -------------------------------------------------------------- EDID parse --
+def _edid_decode(blob: bytes):
+    """Return (vendor3, product_int, serial_int) from raw EDID bytes, or None."""
+    if len(blob) < 16 or blob[:8] != b"\x00\xff\xff\xff\xff\xff\xff\x00":
+        return None
+    val = int.from_bytes(blob[8:10], "big")
+    vendor = "".join(chr(((val >> shift) & 0x1F) + 0x40) for shift in (10, 5, 0))
+    product = int.from_bytes(blob[10:12], "little")
+    serial = int.from_bytes(blob[12:16], "big")
+    return vendor, product, serial
+
+
+def _edid_from_verbose() -> dict[str, tuple]:
+    """Parse `xrandr --verbose` EDID hex blocks -> {output: (vendor, product, serial)}."""
+    out = {}
+    try:
+        raw = subprocess.run(["xrandr", "--verbose"], capture_output=True, text=True, timeout=10).stdout
+    except FileNotFoundError:
+        return out
+    block = None
+    hexbuf = []
+    for line in raw.splitlines():
+        m = re.match(r"^(\S+) connected", line)
+        if m:
+            block = m.group(1)
+            hexbuf = []
+            continue
+        if block is None:
+            continue
+        s = line.strip()
+        if s == "EDID:":
+            hexbuf = []
+            continue
+        if re.fullmatch(r"[0-9a-fA-F ]+", s) and len(s) > 20:
+            hexbuf.append(s.replace(" ", ""))
+            continue
+        if hexbuf:
+            blob = bytes.fromhex("".join(hexbuf))[:128]
+            ident = _edid_decode(blob)
+            if ident:
+                out[block] = ident
+            hexbuf = []
+    return out
+
+
+def _modes_from_xrandr() -> dict[str, dict]:
+    """Parse plain `xrandr` -> {output: {connected, res, rate, rates}}."""
+    out = {}
+    try:
+        raw = subprocess.run(["xrandr"], capture_output=True, text=True, timeout=10).stdout
+    except FileNotFoundError:
+        return out
+    block = None
+    for line in raw.splitlines():
+        m = re.match(r"^(\S+) (connected|disconnected)", line)
+        if m:
+            block = m.group(1)
+            out[block] = {"connected": m.group(2) == "connected", "res": None, "rate": None, "rates": []}
+            continue
+        if block is None or not out[block]["connected"]:
+            continue
+        mm = re.match(r"^\s*(\d+x\d+)\s+(.+)$", line)
+        if mm:
+            tokens = mm.group(2).split()
+            rates = [float(tok.rstrip("*+")) for tok in tokens if re.match(r"^\d+\.\d+", tok)]
+            cur = [float(tok.rstrip("*+")) for tok in tokens if "*" in tok]
+            if cur:
+                out[block]["res"] = mm.group(1)
+                out[block]["rate"] = cur[0]
+                out[block]["rates"] = rates
+    return out
+
+
+def monitor_state() -> dict[str, dict]:
+    """Merge modes (plain xrandr) + identities (xrandr --verbose)."""
+    modes = _modes_from_xrandr()
+    edids = _edid_from_verbose()
+    for name, b in modes.items():
+        b["identity"] = edids.get(name)
+    return modes
+
+
+def dbus_connector_names() -> list[str]:
+    """Ask mutter (GNOME) for its own connector names — authoritative for monitors.xml."""
+    for cmd in (["gdbus", "call", "--session", "--dest", "org.gnome.Mutter.DisplayConfig",
+                 "--object-path", "/org/gnome/Mutter/DisplayConfig",
+                 "--method", "org.gnome.Mutter.DisplayConfig.GetCurrentState"],
+                ["busctl", "--user", "call", "org.gnome.Mutter.DisplayConfig",
+                 "/org/gnome/Mutter/DisplayConfig", "org.gnome.Mutter.DisplayConfig",
+                 "GetCurrentState"]):
+        try:
+            raw = subprocess.run(cmd, capture_output=True, text=True, timeout=10).stdout
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+        names = re.findall(r"'((?:eDP|HDMI|DP|VGA|LVDS|DVI|DisplayPort)[-A-Za-z0-9]*)'", raw, re.I)
+        if names:
+            return sorted(set(names))
+    return []
+
+
+def match_rule(rules, identity):
+    """Find first rule matching an (vendor, product, serial) identity."""
+    if not identity:
+        return None
+    vendor, product, serial = identity
+    for r in rules:
+        rv, rp, rs, rate, uuid = r
+        if rv == vendor and rp == product:
+            if rs is not None and serial and rs != serial:
+                continue
+            return r
+    return None
+
+
+# ------------------------------------------------------------------- apply --
+def apply_x11(outputs, rules, dry_run: bool) -> bool:
+    changed = False
+    for name, b in outputs.items():
+        if not b.get("connected") or not b.get("identity") or not b.get("res"):
+            continue
+        rule = match_rule(rules, b["identity"])
+        if not rule:
+            continue
+        target = rule[3]
+        cur = b.get("rate") or 0
+        if abs(cur - target) < 0.5:
+            continue
+        avail = [r for r in b["rates"] if abs(r - target) < 0.5]
+        if not avail:
+            print(f"monitor-prefs: {name}: {rule[0]}:{hex(rule[1])} wants {target:g} Hz but "
+                  f"unavailable at {b['res']} (have {b['rates']})", file=sys.stderr)
+            continue
+        cmd = ["xrandr", "--output", name, "--mode", b["res"], "--rate", f"{avail[0]:g}"]
+        print(f"monitor-prefs: {name}: {cur:g} Hz -> {target:g} Hz  ({' '.join(cmd[2:])})")
+        if not dry_run:
+            subprocess.run(cmd, check=True)
+            changed = True
+    return changed
+
+
+def apply_gnome_randr(outputs, rules) -> bool:
+    if shutil.which("gnome-randr") is None:
+        return False
+    for name, b in outputs.items():
+        if not b.get("connected") or not b.get("identity"):
+            continue
+        rule = match_rule(rules, b["identity"])
+        if not rule:
+            continue
+        target = rule[3]
+        if b.get("rate") and abs(b["rate"] - target) < 0.5:
+            continue
+        print(f"monitor-prefs: gnome-randr: {name} -> {target:g} Hz")
+        subprocess.run(["gnome-randr", "modify", name, "--rate", f"{target:g}"], check=True)
+    return True
+
+
+def sync_monitors_xml(outputs) -> bool:
+    """Rename <connector> in monitors.xml to the live name for the same EDID.
+
+    Uses mutter's own D-Bus connector names when available (authoritative on
+    both X11 and Wayland), falling back to RandR names. Never touches a
+    connector that has no live match.
+    """
+    live = {}  # (vendor, product_int) -> canonical name
+    for name, b in outputs.items():
+        if not b.get("connected") or not b.get("identity"):
+            continue
+        vendor, product, _ = b["identity"]
+        live.setdefault((vendor, product), name)
+        live.setdefault((vendor, None), name)
+    canonical = set(live.values())
+    dbus_names = dbus_connector_names()
+    if dbus_names:
+        # Prefer the mutter spelling when it differs from RandR (e.g. old
+        # mutter wrote "eDP", current writes "eDP-1-0").
+        for key, randr_name in list(live.items()):
+            for d in dbus_names:
+                if d.lower() == randr_name.lower() or d.lower().startswith(randr_name.split("-")[0].lower()):
+                    live[key] = d
+    try:
+        text = open(MONITORS_XML, encoding="utf-8").read()
+    except FileNotFoundError:
+        return False
+    pat = re.compile(
+        r"(<monitor>\s*<monitorspec>\s*<connector>)([^<]+)(</connector>\s*<vendor>)([^<]+)"
+        r"(</vendor>\s*<product>)([^<]+)(</product>\s*<serial>)([^<]+)(</serial>)"
+    )
+    changes = []
+
+    def repl(m):
+        old, vendor, product = m.group(2), m.group(4).upper(), m.group(6)
+        key = None
+        try:
+            key = (vendor, int(product, 16))
+        except ValueError:
+            key = (vendor, None)
+        new = live.get(key)
+        if new and new != old:
+            changes.append(f"{old} -> {new}  ({vendor} {product})")
+            return m.group(1) + new + m.group(3) + m.group(4) + m.group(5) + m.group(6) + m.group(7) + m.group(8) + m.group(9)
+        return m.group(0)
+
+    new_text = pat.sub(repl, text)
+    if changes:
+        shutil.copy(MONITORS_XML, MONITORS_XML + ".bak")
+        with open(MONITORS_XML, "w", encoding="utf-8") as f:
+            f.write(new_text)
+        for c in changes:
+            print(f"monitor-prefs: monitors.xml: connector {c}")
+    return bool(changes)
+
+
+def apply_macos(rules) -> bool:
+    """Best-effort: displayplacer, rules need :UUID (config 5th field)."""
+    dp = shutil.which("displayplacer")
+    if not dp:
+        print("monitor-prefs: macOS: install displayplacer (brew install displayplacer)", file=sys.stderr)
+        return False
+    try:
+        listing = subprocess.run([dp, "list"], capture_output=True, text=True, timeout=15).stdout
+    except Exception as e:  # noqa: BLE001
+        print(f"monitor-prefs: displayplacer failed: {e}", file=sys.stderr)
+        return False
+    displays = {}  # uuid -> (res, hz)
+    uuid = res = hz = None
+    for line in listing.splitlines():
+        m = re.match(r"\s*id:(\S+)", line)
+        if m:
+            uuid = m.group(1)
+            continue
+        m = re.match(r"\s*res:(\d+x\d+)", line)
+        if m:
+            res = m.group(1)
+            continue
+        m = re.match(r"\s*hz:(\d+)", line)
+        if m:
+            hz = int(m.group(1))
+            if uuid:
+                displays[uuid] = (res, hz)
+            uuid = res = hz = None
+    changed = False
+    for vendor, product, _, rate, uuid_field in rules:
+        if not uuid_field or uuid_field not in displays:
+            continue
+        res, cur = displays[uuid_field]
+        if cur == int(rate):
+            continue
+        print(f"monitor-prefs: macOS: {uuid_field}: {cur} Hz -> {rate:g} Hz")
+        subprocess.run([dp, f"id:{uuid_field}", f"res:{res}", f"hz:{int(rate)}"], check=True)
+        changed = True
+    return changed
+
+
+# ------------------------------------------------------------------ main ----
+def main() -> int:
+    args = [a for a in sys.argv[1:] if a.startswith("--")]
+    if "--status" in args:
+        outputs = monitor_state()
+        rules = parse_config()
+        print(f"{'OUTPUT':<14} {'IDENTITY':<22} {'NOW':>7}  {'PREF':>5}  MATCH")
+        for name, b in outputs.items():
+            if not b.get("connected"):
+                print(f"{name:<14} disconnected")
+                continue
+            ident = b.get("identity")
+            ident_s = f"{ident[0]}:{hex(ident[1])}" if ident else "(no EDID)"
+            rule = match_rule(rules, ident)
+            pref = f"{rule[3]:g}" if rule else "-"
+            print(f"{name:<14} {ident_s:<22} {b.get('rate') or 0:>7g}  {pref:>5}  {'yes' if rule else ''}")
+        return 0
+
+    if "--apply" in args:
+        rules = parse_config()
+        if sys.platform == "darwin":
+            apply_macos(rules)
+            return 0
+        outputs = monitor_state()
+        if not outputs:
+            print("monitor-prefs: xrandr unavailable (not on X11?)", file=sys.stderr)
+            return 1
+        dry = "--dry-run" in args
+        changed = apply_x11(outputs, rules, dry)
+        if not changed and not dry:
+            # Wayland: xrandr has no EDID / cannot set modes. Try gnome-randr,
+            # else sync monitors.xml (effective next login).
+            if not any(b.get("identity") for b in outputs.values()):
+                if apply_gnome_randr(outputs, rules):
+                    return 0
+                if sync_monitors_xml(outputs):
+                    print("monitor-prefs: monitors.xml synced (takes effect at next login)")
+                else:
+                    print("monitor-prefs: no EDID via xrandr and no gnome-randr; "
+                          "run --sync-monitors-xml before logging in after a prime-select switch",
+                          file=sys.stderr)
+        return 0
+
+    if "--sync-monitors-xml" in args:
+        sync_monitors_xml(monitor_state())
+        return 0
+
+    print(__doc__)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

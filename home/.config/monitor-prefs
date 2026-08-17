@@ -1,0 +1,16 @@
+# monitor-prefs — per-monitor refresh rates, keyed by EDID identity.
+#
+# EDID vendor:product is stable across connector renames, so these survive
+# prime-select switches, MUX flips, and dock changes (the connector NAME
+# does not — that's what makes GNOME forget your refresh rate).
+#
+# Format: VENDOR:0xPRODUCT=REFRESH        (serial optional: VENDOR:0xPROD:0xSERIAL=REF)
+# Get identities with: monitor-prefs --status
+# mac: append :UUID from `displayplacer list` — e.g. INP:0x5021=75:37D8832A-...
+
+# Interphase H22V8 (external, HDMI wired to the dGPU) — was silently
+# dropping to 60 Hz after prime-select switches renamed HDMI-1-0 -> HDMI-0
+INP:0x2150=75
+
+# AU Optronics internal panel (IdeaPad Gaming 3 15ARH05) — 120 Hz
+AUO:0xd1ed=120

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Monitor Refresh Prefs
+Comment=Restore saved per-monitor refresh rates by EDID identity (survives connector renames from prime-select/MUX switches)
+# NOTE: freedesktop Exec does not expand $HOME — adjust the username on another machine
+Exec=/home/cwayne/.local/bin/monitor-prefs --apply
+Terminal=false
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=5
