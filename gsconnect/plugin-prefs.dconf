@@ -1,0 +1,14 @@
+[plugin/battery]
+custom-battery-notification=true
+custom-battery-notification-value=uint32 80
+
+[plugin/clipboard]
+receive-content=true
+send-content=true
+
+[plugin/notification]
+applications='{"Power":{"iconName":"org.gnome.Settings-power-symbolic","enabled":true},"Ghostty":{"iconName":"com.mitchellh.ghostty","enabled":true},"Clocks":{"iconName":"org.gnome.clocks","enabled":true},"Color":{"iconName":"org.gnome.Settings-color-symbolic","enabled":true},"Printers":{"iconName":"org.gnome.Settings-printers-symbolic","enabled":true},"Disk Usage Analyzer":{"iconName":"org.gnome.baobab","enabled":true},"Files":{"iconName":"org.gnome.Nautilus","enabled":true},"Disks":{"iconName":"org.gnome.DiskUtility","enabled":true},"Events and Tasks Reminders":{"iconName":"org.gnome.Evolution-alarm-notify","enabled":true},"NetworkManager Applet":{"iconName":"nm-device-wireless","enabled":true},"Date & Time":{"iconName":"org.gnome.Settings-time-symbolic","enabled":true},"Zenity":{"iconName":"application-x-executable","enabled":true},"Snapd User Session Agent":{"iconName":"/usr/share/snapd/snapcraft-logo-bird.svg","enabled":true}}'
+
+[plugin/share]
+launch-urls=true
+receive-directory='/home/cwayne'
