@@ -132,6 +132,16 @@ Same Android app either way (KDE Connect for Android). Device certs and
 pairing state live in `~/.config/kdeconnect/` and are deliberately NOT
 versioned — machine-specific, and re-pairing takes seconds on a fresh box.
 
+### Phone battery reminder (desktop)
+
+`scripts/phone-battery-80.sh` — desktop notification when the phone crosses
+a charge level (default 80%) while charging. Edge-triggered with a 30-min
+cooldown, so it fires once on the upward crossing, not on every poll.
+Reads the phone battery over KDE Connect's D-Bus interface (Linux-only —
+Windows/macOS expose no battery API; use phone-side automation such as
+Tasker there). Schedule it every 5 minutes: systemd user timer, cron, or a
+Hermes cron job. Quiet unless the threshold is crossed.
+
 **Blur my Shell** (`blur-my-shell@aunetx`) adds frosted glass to the panel,
 overview, and alt-tab (custom bright pipeline — the default 0.6 brightness
 reads as "still dark"). The dock is deliberately NOT blurred: blur-my-shell's
