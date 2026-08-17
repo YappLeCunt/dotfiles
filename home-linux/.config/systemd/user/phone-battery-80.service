@@ -1,6 +1,0 @@
-[Unit]
-Description=Phone battery 80% reminder (edge-triggered, cooldown)
-
-[Service]
-Type=oneshot
-ExecStart=%h/dotfiles/scripts/phone-battery-80.sh
