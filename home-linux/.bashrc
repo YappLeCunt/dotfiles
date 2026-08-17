@@ -120,10 +120,10 @@ if ! shopt -oq posix; then
 fi
 
 # Added by cua-driver-rs installer — see https://github.com/trycua/cua
-export PATH="/home/cwayne/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 # opencode
-export PATH=/home/cwayne/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 
 # ble.sh — Bash Line Editor (PSReadLine-style editing: ghost suggestions, menu completion)
 source ~/.local/share/blesh/ble.sh

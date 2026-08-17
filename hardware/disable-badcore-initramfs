@@ -5,6 +5,16 @@
 # Runs inside the initramfs, before the real root is mounted.
 # This is the earliest point userspace can disable them; the
 # disable/throttle systemd service in the real root then takes over.
+#
+# Machine guard: only run on THIS laptop (LENOVO 82EY / IdeaPad Gaming 3
+# 15ARH05 / serial PF2N8WGV). On any other machine the cores are healthy —
+# bail loudly instead of silently offlining a working core.
+if [ "$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null)" != "LENOVO" ] || \
+   [ "$(cat /sys/class/dmi/id/product_name 2>/dev/null)" != "82EY" ] || \
+   [ "$(cat /sys/class/dmi/id/product_serial 2>/dev/null)" != "PF2N8WGV" ]; then
+    echo "disable-badcore: DMI mismatch — not the degraded-core laptop, NOT offlining CPUs" >&2
+    exit 0
+fi
 
 for c in 2 3; do
     if [ -f "/sys/devices/system/cpu/cpu${c}/online" ]; then

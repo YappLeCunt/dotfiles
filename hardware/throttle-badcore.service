@@ -5,6 +5,8 @@ Before=multi-user.target
 
 [Service]
 Type=oneshot
+# DMI guard: refuse to run on any machine but this laptop (see README)
+ExecStartPre=/usr/local/sbin/guard-cpu-quarantine.sh
 ExecStart=/bin/sh -c 'echo 1 > /sys/devices/system/cpu/cpu2/online 2>/dev/null || true; echo 1 > /sys/devices/system/cpu/cpu3/online 2>/dev/null || true; sleep 2; echo 2900000 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 2>/dev/null || true; echo 2900000 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 2>/dev/null || true'
 
 [Install]

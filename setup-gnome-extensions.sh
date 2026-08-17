@@ -65,7 +65,7 @@ print(json.load(sys.stdin).get('download_url') or '')
   [ -n "$url" ] || { warn "EGO: no build for shell $SHELL_MAJOR ($uuid)"; return 1; }
   zipfile="$(mktemp --suffix=.zip)"
   curl -sL -o "$zipfile" "https://extensions.gnome.org$url"
-  rm -rf "$EXT_DIR/$uuid"
+  rm -rf "${EXT_DIR:?}/${uuid:?}"
   unzip -q "$zipfile" -d "$EXT_DIR/$uuid/"
   rm -f "$zipfile"
   if [ -d "$EXT_DIR/$uuid/schemas" ]; then

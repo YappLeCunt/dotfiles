@@ -60,8 +60,8 @@ fi
 # ---- 4. traineddata (fix the 0-byte copy bug) --------------------------------
 log "Fixing eng.traineddata"
 if [ ! -s "$TESSDATA" ]; then   # missing or 0 bytes
-  flatpak run --command=sh "$APP_ID" -c \
-    'cp /app/share/tessdata/eng.traineddata "$XDG_CONFIG_HOME/normcap/tessdata/eng.traineddata"'
+  # shellcheck disable=SC2016  # $XDG_CONFIG_HOME expands INSIDE the flatpak sandbox
+  flatpak run --command=sh "$APP_ID" -c 'cp /app/share/tessdata/eng.traineddata "$XDG_CONFIG_HOME/normcap/tessdata/eng.traineddata"'
   if [ ! -s "$TESSDATA" ]; then
     warn "copy failed — is the app installed and /app/share/tessdata present?"
   else

@@ -53,7 +53,9 @@ for layer in "${LAYERS[@]}"; do
 done
 
 link() { # link <rel> <src>
-  local rel="$1" src="$2" dst="$HOME/$rel"
+  local rel="$1"
+  local src="$2"
+  local dst="$HOME/$rel"
   local target
   if [ -L "$dst" ]; then
     target="$(readlink "$dst")"

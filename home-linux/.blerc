@@ -6,7 +6,8 @@
 
 # ── fzf integration (PSFzf equivalent) ──────────────────────────────
 # fzf binary is in ~/.local/bin, shell scripts live in ~/.fzf/shell —
-# point the integration at the repo dir explicitly (auto-detect misses it).
+# ble's auto-detect only probes PATH-installed fzf layouts, not a manual
+# ~/.fzf clone — so point the integration at the repo dir explicitly.
 _ble_contrib_fzf_base=$HOME/.fzf
 ble-import -d integration/fzf-completion
 ble-import -d integration/fzf-key-bindings

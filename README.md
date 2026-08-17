@@ -58,8 +58,10 @@ change re-points our own symlinks; real files are never clobbered.
 Mirrors the old Windows PowerShell (PSReadLine + PSFzf) muscle memory:
 
 - `home/.bashrc` — loads ble.sh **before** starship (starship must init after
-  ble so it uses ble's PRECMD hook). Note: PATH lines hardcode `/home/cwayne`
-  — adjust the username on another machine.
+  ble so it uses ble's PRECMD hook). PATH lines use `$HOME` — portable. The
+  one remaining hardcoded path is `downloads-notify.desktop`'s `Exec`
+  (freedesktop does not expand `$HOME` there) — adjust the username on
+  another machine.
 - `home/.blerc` — ghost-text autosuggestions (dim gray, like PSReadLine
   InlinePrediction), Tab = menu completion, ↑/↓ = history search on a typed
   prefix, fzf completion + key bindings. `_ble_contrib_fzf_base=$HOME/.fzf`

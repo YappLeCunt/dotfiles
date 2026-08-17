@@ -8,7 +8,7 @@ DIR="${1:-$HOME/Downloads}"
 DEBOUNCE=3
 declare -A seen
 
-while read -r event file; do
+while read -r _ file; do
     [[ -n "$file" ]] || continue   # ignore dir-level events
 
     case "$file" in

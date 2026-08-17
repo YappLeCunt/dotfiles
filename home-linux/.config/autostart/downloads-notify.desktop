@@ -2,6 +2,7 @@
 Type=Application
 Name=Downloads Notifier
 Comment=Desktop notification when a new file arrives in ~/Downloads
+# NOTE: freedesktop Exec does not expand $HOME — adjust the username on another machine
 Exec=/home/cwayne/.local/bin/downloads-notify.sh
 Terminal=false
 X-GNOME-Autostart-enabled=true
