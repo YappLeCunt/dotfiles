@@ -181,4 +181,6 @@ throttle caps to hold. Full docs: `hardware/README.md`.
 - `org.gnome.desktop.default-applications.terminal` is deprecated but kept
   for legacy tooling.
 - Nothing secret lives here: no tokens, keys, or credentials. The repo is
-  private by default — flip with `gh repo edit --visibility public`.
+  **public** (since Aug 2026) — treat every future commit as public; commit
+  emails use the GitHub noreply address; secret scanning + push protection
+  are enabled on the repo.
