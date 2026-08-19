@@ -6,7 +6,7 @@ Gaming 3 15ARH05, Ryzen 7 4800H, NVIDIA GTX 1650 Ti + AMD Renoir iGPU).
 ## Fresh-machine quick start
 
 ```sh
-git clone git@github.com:YappLeCunt/dotfiles.git ~/dotfiles
+git clone git@github.com:alkaiyali/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh                 # symlink home/ -> ~ (never clobbers; --dry-run first)
 ./scripts/install-fonts.sh   # JetBrainsMono Nerd Font + Inter (no sudo)
@@ -14,6 +14,7 @@ cd ~/dotfiles
 ./setup-gnome-defaults.sh    # dconf defaults (desktop animations ON)
 ./setup-gnome-extensions.sh  # GNOME extensions (clipboard indicator)
 ./setup-normcap-defaults.sh  # NormCap flatpak OCR fix + neutral border (no sudo)
+./setup-audio-separator.sh   # unwa Instrumental v1e plus model + audio-separator CLI (no sudo, 913 MB)
 ~/.local/bin/vlc-windows-look.sh   # VLC flatpak, Windows look (1 pkexec if flatpak missing)
 ~/.local/bin/monitor-prefs --status   # verify refresh-rate prefs (auto-applied every login)
 ```
@@ -49,6 +50,7 @@ change re-points our own symlinks; real files are never clobbered.
 | `dash-to-dock/settings.dconf` | Ubuntu Dock dconf settings (bottom dock, white dots, external-monitor preference) — applied by setup-gnome-defaults.sh |
 | `desktop/Dock Settings.desktop` | Dock Settings launcher — copied to `~/Desktop` by install.sh **only when desktop icons (ding) are enabled**; copied not symlinked (gvfs trusted flag is per-path) |
 | `setup-normcap-defaults.sh` | Idempotent: NormCap flatpak OCR fix (tessdata bugs) + neutral capture border; config in `normcap/settings.conf` |
+| `setup-audio-separator.sh` | Idempotent: installs audio-separator (uv/pipx/venv fallback), fetches unwa **Instrumental v1e plus** MelBand-Roformer model (913 MB) into `~/.audio_separator/models`, pins `AUDIO_SEPARATOR_MODEL_DIR` in `.bashrc` (CLI default is `/tmp`!) |
 | `normcap/settings.conf` | Canonical NormCap config (border `#48484A`); **copied** into the sandbox dir, not symlinked (see NormCap section) |
 | `scripts/install-fonts.sh` | Fetches JetBrainsMono Nerd Font + Inter |
 | `home/.local/bin/monitor-prefs` | EDID-keyed refresh-rate restorer — survives connector renames (prime-select/MUX/dock); rules `home/.config/monitor-prefs`, autostart `home-linux/.config/autostart/monitor-prefs.desktop` |
