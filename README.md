@@ -54,6 +54,7 @@ change re-points our own symlinks; real files are never clobbered.
 | `home/.local/bin/monitor-prefs` | EDID-keyed refresh-rate restorer — survives connector renames (prime-select/MUX/dock); rules `home/.config/monitor-prefs`, autostart `home-linux/.config/autostart/monitor-prefs.desktop` |
 | `packages.txt` | Curated apt / flatpak / manual package manifest |
 | `hardware/` | CPU-quarantine kit for the degraded core 1 (initramfs hook + systemd units + heartbeat) |
+| `powershell/` | Windows PowerShell 7 profile + `bootstrap-new-machine.ps1` (winget prereqs, modules, Defender exclusions). Lives at `Documents\PowerShell\` on Windows (or OneDrive\Documents\PowerShell); the local gateway token is redacted — set `$env:ANTHROPIC_API_KEY` in section 6 to your own |
 
 ## Shell: bash + ble.sh + starship + fzf
 
