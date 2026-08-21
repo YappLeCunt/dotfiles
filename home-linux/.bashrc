@@ -133,3 +133,4 @@ eval "$(starship init bash)"
 
 # audio-separator: keep models in a persistent dir (CLI default is /tmp)
 export AUDIO_SEPARATOR_MODEL_DIR="$HOME/.audio_separator/models"
+export PATH="/home/cwayne/depot_tools:$PATH"
